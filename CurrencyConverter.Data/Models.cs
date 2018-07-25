@@ -184,3 +184,9 @@ public partial class Cube
     }
 }
 
+public class ExchangeRate
+{
+    public string Currency { get; set; }
+    public decimal Rate { get; set; }
+    public System.DateTime Time { get; set; }
+}
