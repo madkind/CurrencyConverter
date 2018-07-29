@@ -66,12 +66,13 @@ namespace CurrencyConverter.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult OnGetHistoricalData(string currencyFrom, string currencyTo)
         {
-            var first = _currencyDbContext.ExchangeRates.Where(x => x.Currency == currencyFrom);
-            var second = _currencyDbContext.ExchangeRates.Where(x => x.Currency == currencyTo);
+            var from = _currencyDbContext.ExchangeRates.Where(x => x.Currency == currencyFrom);
+            var to = _currencyDbContext.ExchangeRates.Where(x => x.Currency == currencyTo);
 
-            var result = (from f in first
-                         join s in second on f.Time equals s.Time orderby f.Time
-                         select new {y =  f.Rate / s.Rate, x = f.Time }).ToList();
+            var result = (
+                         from f in @from
+                         join t in @to on f.Time equals t.Time orderby f.Time
+                         select new {y =  f.Rate / t.Rate, x = f.Time }).ToList();
 
             return Json(result);
         }

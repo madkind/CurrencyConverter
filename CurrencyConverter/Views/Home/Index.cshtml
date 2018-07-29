@@ -9,26 +9,6 @@
 
     $(document).ready(function () {
         getChart();
-
-        //validation START
-        var form = $('#currencyForm')
-        formData = $.data(form[0])
-        settings = formData.validator.settings
-        oldErrorPlacement = settings.errorPlacement
-        oldSuccess = settings.success;
-
-        settings.errorPlacement = function (label, element) {
-
-            oldErrorPlacement(label, element);
-            label.parents('.form-group').addClass('has-error');
-            label.addClass('text-danger');
-        };
-
-        settings.success = function (label) {
-            label.parents('.form-group').removeClass('has-error');
-            oldSuccess(label);
-        };
-        //validation END
         //key timeout START
         var textInput = document.getElementById("tbAmount");
         var timeout = null;
@@ -43,9 +23,8 @@
         if (!$("#currencyForm").valid())
             return
 
-        console.log("valid")
         $.ajax({
-            type: "POST",
+            type: "GET",
             url: '/Home/OnGetExchangeRate',
             beforeSend: function (xhr) {
                 xhr.setRequestHeader("XSRF-TOKEN",
@@ -61,19 +40,25 @@
             document.getElementById("tbResult").value = data.toFixed(2);
         })
     }
+
     function swap() {
-        getChart();
         temp = document.getElementById("dlCurrencyFrom").value,
         document.getElementById("dlCurrencyFrom").value = document.getElementById("dlCurrencyTo").value,
         document.getElementById("dlCurrencyTo").value = temp
 
-        if (document.getElementById("tbAmount").value.length > 0)
-            calculate()
+        update();
     }
 
+    function update() { 
+        getChart();
+
+        if (document.getElementById("tbAmount").value.length > 0)
+            calculate();
+        }
+ 
     function getChart() {
         $.ajax({
-            type: "POST",
+            type: "GET",
             url: "/Home/OnGetHistoricalData",
             beforeSend: function (xhr) {
                 xhr.setRequestHeader("XSRF-TOKEN",
@@ -120,11 +105,11 @@
             <div class="col-sm-2">
                 @Html.DropDownListFor(Model => Model.CurrencyFrom,
                                     (SelectList)ViewData["SelectList"],
-                                    null, new { id= "dlCurrencyFrom", onchange = "getChart()", value = "EUR", @class = "form-control" })
+                                    null, new { id= "dlCurrencyFrom", onchange = "update()", value = "EUR", @class = "form-control" })
             </div>
             <div class="col-sm-3">
                 @Html.TextBoxFor(Model => Model.Amount, null, new { id = "tbAmount", @class = "form-control", type = "number", maxlength = 20 })
-                @Html.ValidationMessageFor(Model => Model.Amount)
+                @Html.ValidationMessageFor(Model => Model.Amount, null, new { @class="text-danger"})
             </div>
             <div class="col-sm-2">
                 <button type="button" class="btn btn-link center-block">
@@ -134,7 +119,7 @@
             <div class="col-sm-2">
                 @Html.DropDownListFor(Model => Model.CurrencyTo,
                    (SelectList)ViewData["SelectList"],
-                   null, new { id= "dlCurrencyTo", onchange = "getChart()", value = "EUR", @class = "form-control" })
+                   null, new { id= "dlCurrencyTo", onchange = "update()", value = "EUR", @class = "form-control" })
             </div>
             <div class="col-sm-3">
                 @Html.TextBox("tbResult", null, new { @class = "form-control", @readonly = "true" })
