@@ -50,7 +50,11 @@ namespace CurrencyConverter
                     template: "{controller=Home}/{action=Index}/{id?}");
             });
 
-            context.AddRange(new ExchangeManager().GetExchangeRates());
+            var rates = new ExchangeManager().GetExchangeRates();
+            var timePoints = rates.Select(x => x.Time).Distinct();
+
+            context.AddRange(rates);
+            context.AddRange(timePoints.Select(x=> new ExchangeRate() {Time = x.Date, Currency = "EUR", Rate = 1 }));
             context.SaveChanges();
         }
     }

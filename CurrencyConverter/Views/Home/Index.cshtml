@@ -1,36 +1,42 @@
 ﻿@{
     ViewData["Title"] = "Home Page";
 }
+@model SelectList
 
 <script type="text/javascript">
+    
+    $(document).ready(getChart);
+
+    var myLineChart;
+
     function calculate() {
-            $.ajax({
-                type: "POST",
-                url: '/Home/OnGetExchangeRate',
-                beforeSend: function (xhr) {
-                    xhr.setRequestHeader("XSRF-TOKEN",
-                        $('input:hidden[name="__RequestVerificationToken"]').val());
-                },
-                data: {
-                    currencyFrom: document.getElementById("dlCurrencyFrom").value,
-                    currencyTo: document.getElementById("dlCurrencyTo").value,
-                    amount: document.getElementById("tbAmount").value.replace(".", ","),
-                    direction: true
-                }
-            }).done(function (data) {
-                document.getElementById("tbResult").value = data.toFixed(2);
-            })
+        $.ajax({
+            type: "POST",
+            url: '/Home/OnGetExchangeRate',
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader("XSRF-TOKEN",
+                    $('input:hidden[name="__RequestVerificationToken"]').val());
+            },
+            data: {
+                currencyFrom: document.getElementById("dlCurrencyFrom").value,
+                currencyTo: document.getElementById("dlCurrencyTo").value,
+                amount: document.getElementById("tbAmount").value.replace(".", ","),
+                direction: true
+            }
+        }).done(function (data) {
+            document.getElementById("tbResult").value = data.toFixed(2);
+        })
     }
     function swap() {
         temp = document.getElementById("dlCurrencyFrom").value,
-        document.getElementById("dlCurrencyFrom").value = document.getElementById("dlCurrencyTo").value,
-        document.getElementById("dlCurrencyTo").value = temp
+            document.getElementById("dlCurrencyFrom").value = document.getElementById("dlCurrencyTo").value,
+            document.getElementById("dlCurrencyTo").value = temp
         calculate()
     }
 
     function validate() {
         var errorMsgs = [];
-        if (document.getElementById("dlCurrencyFrom").value.length == 0)
+        if (document.getElementById("dlCurrencyFrom").value.length == 0)    
             errorMsgs.push("Please select your currency!");
 
         if (document.getElementById("dlCurrencyTo").value.length == 0)
@@ -41,19 +47,67 @@
 
         return errorMsgs;
     }
+
+    function getChart() {
+        $.ajax({
+            type: "POST",
+            url: "/Home/OnGetHistoricalData",
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader("XSRF-TOKEN",
+                    $('input:hidden[name="__RequestVerificationToken"]').val());
+            },
+            data: {
+                currencyFrom: document.getElementById("dlCurrencyFrom").value,
+                currencyTo: document.getElementById("dlCurrencyTo").value
+                  }
+        }).done(function (data) {
+            plotChart(data)
+        })
+    }
+
+    function plotChart(data) { 
+        if (myLineChart && myLineChart.chart)
+            myLineChart.chart.destroy();
+
+        var ctx = $("#myChart").get(0).getContext("2d");
+        myLineChart = new Chart(ctx, {
+            type: 'line',
+
+            data: {
+                labels: data.map(x => x.x.substring(0, 10)),
+                datasets: [{
+                    label: document.getElementById("dlCurrencyFrom").value + " to " + document.getElementById("dlCurrencyTo").value,
+                    data: data,
+                    borderColor: "#3e95cd",
+                    fill: false
+                }]
+            },
+            options: {
+            }
+        });
+        myLineChart.update();
+    }
+    function ddlChanged(){ 
+        if (document.getElementById("dlCurrencyFrom").value.length > 0 &&
+            document.getElementById("dlCurrencyTo").value.length > 0) { 
+            getChart();
+            }
+    }
 </script>
 <form method="post">
     <input type="button" value="Calculate" class="btn btn-default" onclick="calculate();" />
     <input type="button" value="Swap" class="btn btn-default" onclick="swap();" />
     @Html.DropDownList("dlCurrencyFrom",
-                    new SelectList(Model),
-                    "Select Currency")
+                   Model,
+                    null, new { onchange= "ddlChanged()", value="EUR"})
     @Html.DropDownList("dlCurrencyTo",
-                    new SelectList(Model),
-                    "Select Currency")
+                    Model,
+                    null, new { onchange = "ddlChanged()" })
     @Html.TextBox("tbAmount")
     @Html.TextBox("tbResult")
-    @Html.ValidationSummary()
 </form>
+
+<canvas id="myChart"></canvas>
+
 
 
