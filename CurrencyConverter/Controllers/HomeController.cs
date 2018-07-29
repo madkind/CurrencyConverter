@@ -25,7 +25,8 @@ namespace CurrencyConverter.Controllers
             var sl = new SelectList(currencies);
             sl.First(x => x.Text == "EUR").Selected = true;
 
-            return View(sl);
+            ViewData["SelectList"] = sl;
+            return View();
         }
 
         public IActionResult About()

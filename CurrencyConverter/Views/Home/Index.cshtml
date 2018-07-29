@@ -1,15 +1,19 @@
 ﻿@{
     ViewData["Title"] = "Home Page";
 }
-@model SelectList
+@model ExchangeQueryModel
 
 <script type="text/javascript">
-    
+
     $(document).ready(getChart);
 
     var myLineChart;
 
     function calculate() {
+        if (!$("#currencyForm").valid()) 
+            return
+
+        console.log("valid")
         $.ajax({
             type: "POST",
             url: '/Home/OnGetExchangeRate',
@@ -20,7 +24,7 @@
             data: {
                 currencyFrom: document.getElementById("dlCurrencyFrom").value,
                 currencyTo: document.getElementById("dlCurrencyTo").value,
-                amount: document.getElementById("tbAmount").value.replace(".", ","),
+                amount: document.getElementById("Amount").value.replace(".", ","),
                 direction: true
             }
         }).done(function (data) {
@@ -34,20 +38,6 @@
         calculate()
     }
 
-    function validate() {
-        var errorMsgs = [];
-        if (document.getElementById("dlCurrencyFrom").value.length == 0)    
-            errorMsgs.push("Please select your currency!");
-
-        if (document.getElementById("dlCurrencyTo").value.length == 0)
-            errorMsgs.push("Please select your target currency!");
-
-        if (document.getElementById("tbAmount").value.length == 0)
-            errorMsgs.push("Please enter the amount you want to convert!");
-
-        return errorMsgs;
-    }
-
     function getChart() {
         $.ajax({
             type: "POST",
@@ -59,13 +49,13 @@
             data: {
                 currencyFrom: document.getElementById("dlCurrencyFrom").value,
                 currencyTo: document.getElementById("dlCurrencyTo").value
-                  }
+            }
         }).done(function (data) {
             plotChart(data)
         })
     }
 
-    function plotChart(data) { 
+    function plotChart(data) {
         if (myLineChart && myLineChart.chart)
             myLineChart.chart.destroy();
 
@@ -87,23 +77,24 @@
         });
         myLineChart.update();
     }
-    function ddlChanged(){ 
+    function ddlChanged() {
         if (document.getElementById("dlCurrencyFrom").value.length > 0 &&
-            document.getElementById("dlCurrencyTo").value.length > 0) { 
+            document.getElementById("dlCurrencyTo").value.length > 0) {
             getChart();
-            }
+        }
     }
 </script>
-<form method="post">
+<form id="currencyForm" method="post">
     <input type="button" value="Calculate" class="btn btn-default" onclick="calculate();" />
     <input type="button" value="Swap" class="btn btn-default" onclick="swap();" />
-    @Html.DropDownList("dlCurrencyFrom",
-                   Model,
-                    null, new { onchange= "ddlChanged()", value="EUR"})
-    @Html.DropDownList("dlCurrencyTo",
-                    Model,
-                    null, new { onchange = "ddlChanged()" })
-    @Html.TextBox("tbAmount")
+    @Html.DropDownListFor(Model => Model.CurrencyFrom,
+                    (SelectList)ViewData["SelectList"],
+                    null, new { id= "dlCurrencyFrom", onchange = "ddlChanged()", value = "EUR" })
+    @Html.DropDownListFor(Model => Model.CurrencyTo,
+                    (SelectList)ViewData["SelectList"],
+                    null, new { id= "dlCurrencyTo", onchange = "ddlChanged()", value = "EUR" })
+    @Html.EditorFor(Model => Model.Amount, null, new {id="tbAmount"})
+    @Html.ValidationMessageFor(Model => Model.Amount)
     @Html.TextBox("tbResult")
 </form>
 
