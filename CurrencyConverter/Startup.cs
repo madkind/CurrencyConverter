@@ -24,11 +24,12 @@ namespace CurrencyConverter
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddDbContext<CurrencyConverterDbContext>(optionsAction: opt => opt.UseInMemoryDatabase("currencydb"));
+            services.AddAntiforgery(o => o.HeaderName = "XSRF-TOKEN");
             services.AddMvc();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, CurrencyConverterDbContext context)
         {
             if (env.IsDevelopment())
             {
@@ -48,6 +49,9 @@ namespace CurrencyConverter
                     name: "default",
                     template: "{controller=Home}/{action=Index}/{id?}");
             });
+
+            context.AddRange(new ExchangeManager().GetExchangeRates());
+            context.SaveChanges();
         }
     }
 }

@@ -8,11 +8,8 @@ namespace CurrencyConverter.Data
     public class CurrencyConverterDbContext : DbContext
     {
         public CurrencyConverterDbContext(DbContextOptions<CurrencyConverterDbContext> options)
-            : base(options)
-        {
-            this.ExchangeRates.AddRange(new ExchangeManager().GetExchangeRates());
-            this.SaveChanges();
-        }
+            : base(options){}
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<ExchangeRate>()

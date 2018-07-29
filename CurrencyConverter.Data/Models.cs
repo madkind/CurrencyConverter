@@ -1,5 +1,6 @@
 ﻿
 // NOTE: Generated code may require at least .NET Framework 4.5 or .NET Core/Standard 2.0.
+using System.ComponentModel.DataAnnotations;
 /// <remarks/>
 [System.SerializableAttribute()]
 [System.ComponentModel.DesignerCategoryAttribute("code")]
@@ -189,4 +190,13 @@ public class ExchangeRate
     public string Currency { get; set; }
     public decimal Rate { get; set; }
     public System.DateTime Time { get; set; }
+}
+
+public class ExchangeQueryModel {
+    [Required]
+    public string CurrencyFrom { get; set; }
+    [Required]
+    public string CurrencyTo { get; set; }
+    [Required]
+    public decimal Amount { get; set; }
 }
